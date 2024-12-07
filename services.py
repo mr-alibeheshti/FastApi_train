@@ -24,7 +24,7 @@ def get_db():
 create_db()
 
 
-async def grtUserByEmail(email: str, db: _orm.Session):
+async def getUserByEmail(email: str, db: _orm.Session):
     return db.query(_models.UserModel).filter(_models.UserModel.email == email).first()
 
 
@@ -61,7 +61,14 @@ async def create_token(user: _models.UserModel):
     token = _jwt.encode(user_dict, _JWT_SECRET)
     return dict(access_token=token, token_type="bearer")
 
-async def login(email: str,password: str, db:_orm.Session):
-    db_user = await getUserByEmail(email=email,db=db)
+
+async def login(email: str, password: str, db: _orm.Session):
+    db_user = await getUserByEmail(email=email, db=db)
     if not db_user:
-        return False
+        raise _fastapi.HTTPException(
+            400, "This Account Isn't Register In This Site , Please First Register.")
+
+    if not db_user.password_ver(password=password):
+        raise _fastapi.HTTPException(400, "Your Password Isn't Correct!")
+
+    return db_user
