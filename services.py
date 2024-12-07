@@ -54,10 +54,14 @@ async def create_user(user: _schemas.UserReq, db: _orm.Session):
 
 
 async def create_token(user: _models.UserModel):
-    # user_schema = _schemas.UserRep.from_orm(user)
-    # user_dict = user_schema.dict()
-    # del user_dict['created_at']
+    user_schema = _schemas.UserRep.from_orm(user)
+    user_dict = user_schema.dict()
+    del user_dict['created_at']
 
-    # token = _jwt.encode(user_dict, _JWT_SECRET)
-    # return dict(access_token=token, token_type="bearer")
-    return _JWT_SECRET
+    token = _jwt.encode(user_dict, _JWT_SECRET)
+    return dict(access_token=token, token_type="bearer")
+
+async def login(email: str,password: str, db:_orm.Session):
+    db_user = await getUserByEmail(email=email,db=db)
+    if not db_user:
+        return False
