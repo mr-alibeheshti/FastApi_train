@@ -5,6 +5,8 @@ import passlib.hash as _hash
 import database as _database
 
 # User Table
+
+
 class UserModel(_database.Base):
     __tablename__ = "users"
     id = _sqlalchemy.Column(_sqlalchemy.Integer, primary_key=True, index=True)
@@ -20,6 +22,8 @@ class UserModel(_database.Base):
         return _hash.bcrypt.verify(password, self.password_hash)
 
 # Post Table
+
+
 class PostModel(_database.Base):
     __tablename__ = "posts"
     id = _sqlalchemy.Column(_sqlalchemy.Integer, primary_key=True, index=True)

@@ -84,7 +84,8 @@ async def current_user(db: _orm.Session = _fastapi.Depends(get_db), token: str =
         raise _fastapi.HTTPException(401, "Wrong Credentials!")
     return _schemas.UserRep.from_orm(db_user)
 
-async def create_post(user: _schemas.UserRep, db : _orm.Session , post: _schemas.PostReq):
+
+async def create_post(user: _schemas.UserRep, db: _orm.Session, post: _schemas.PostReq):
     post = _models.PostModel(**post.dict(), user_id=user.id)
     db.add(post)
     db.commit()
@@ -92,26 +93,54 @@ async def create_post(user: _schemas.UserRep, db : _orm.Session , post: _schemas
     # db.close()
     return _schemas.PostRes.from_orm(post)
 
-async def get_posts_by_user(user: _schemas.UserRep , db : _orm.Session):
+
+async def get_posts_by_user(user: _schemas.UserRep, db: _orm.Session):
     posts = db.query(_models.PostModel).filter_by(user_id=user.id)
     return list(map(_schemas.PostRes.from_orm, posts))
 
-async def get_post_detail(post_id : int, db : _orm.session):
-    db_post = db.query(_models.PostModel).filter(_models.PostModel.id==post_id).first()
+
+async def get_post_detail(post_id: int, db: _orm.session):
+    db_post = db.query(_models.PostModel).filter(
+        _models.PostModel.id == post_id).first()
     if not db_post:
         raise _fastapi.HTTPException(404, "Post Not Found")
-    return _schemas.PostRes.from_orm(db_post)
+    return db_post
 
 
 async def delete_post(post_id: int, user_id: int, db: _orm.Session):
     db_post = db.query(_models.PostModel).filter(
-        _models.PostModel.id == post_id, 
+        _models.PostModel.id == post_id,
         _models.PostModel.user_id == user_id
     ).first()
-    
+
     if not db_post:
-        raise _fastapi.HTTPException(404, "Post not found or you don't have permission to delete")
-    
+        raise _fastapi.HTTPException(
+            404, "Post not found or you don't have permission to delete")
+
     db.delete(db_post)
     db.commit()
     return True
+
+
+async def update_post(post_req: _schemas.PostReq, post: _models.PostModel, db: _orm.Session):
+    post.post_title = post_req.post_title
+    post.post_description = post_req.post_description
+    post.image = post_req.image
+
+    db.commit()
+    db.refresh(post)
+
+    return _schemas.PostRes.model_validate(post)
+
+
+async def get_all_posts(db: _orm.Session):
+    posts = db.query(_models.PostModel)
+    return list(map(_schemas.PostRes.from_orm, posts))
+
+
+async def get_user_details(user_id: int, db: _orm.session):
+    db_user = db.query(_models.UserModel).filter(
+        _models.UserModel.id == user_id).first()
+    if not db_user:
+        raise _fastapi.HTTPException(404, "user Not Found")
+    return db_user
