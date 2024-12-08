@@ -44,3 +44,12 @@ async def get_posts_by_user(user: _schemas.UserReq = _fastapi.Depends(_services.
 async def get_post_detail(post_id:int, db: _orm.session = _fastapi.Depends(_services.get_db)):
     post = await _services.get_post_detail(post_id=post_id, db=db)
     return post
+
+@app.delete("/api/v1/post/{post_id}")
+async def delete_post_route(
+    post_id: int, 
+    db: _orm.Session = _fastapi.Depends(_services.get_db),
+    user: _schemas.UserRep = _fastapi.Depends(_services.current_user)
+):
+    await _services.delete_post(post_id=post_id, user_id=user.id, db=db)
+    return "Post Deleted Successfully."

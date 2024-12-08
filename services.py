@@ -101,3 +101,17 @@ async def get_post_detail(post_id : int, db : _orm.session):
     if not db_post:
         raise _fastapi.HTTPException(404, "Post Not Found")
     return _schemas.PostRes.from_orm(db_post)
+
+
+async def delete_post(post_id: int, user_id: int, db: _orm.Session):
+    db_post = db.query(_models.PostModel).filter(
+        _models.PostModel.id == post_id, 
+        _models.PostModel.user_id == user_id
+    ).first()
+    
+    if not db_post:
+        raise _fastapi.HTTPException(404, "Post not found or you don't have permission to delete")
+    
+    db.delete(db_post)
+    db.commit()
+    return True
