@@ -43,4 +43,4 @@ class PostRes(PostBase):
     created_at: _datetime.datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

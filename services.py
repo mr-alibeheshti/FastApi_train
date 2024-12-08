@@ -6,6 +6,8 @@ import email_validator as _email_validator
 import fastapi as _fastapi
 import passlib.hash as _hash
 import jwt as _jwt
+import fastapi.security as _security
+oauth2schema = _security.OAuth2PasswordBearer("/api/v1/user/login")
 _JWT_SECRET = "lksdlkgK!#ijlkfd"
 
 
@@ -72,3 +74,20 @@ async def login(email: str, password: str, db: _orm.Session):
         raise _fastapi.HTTPException(400, "Your Password Isn't Correct!")
 
     return db_user
+
+
+async def current_user(db: _orm.Session = _fastapi.Depends(get_db), token: str = _fastapi.Depends(oauth2schema)):
+    try:
+        payload = _jwt.decode(token, _JWT_SECRET, algorithms=["HS256"])
+        db_user = db.query(_models.UserModel).get(payload["id"])
+    except:
+        raise _fastapi.HTTPException(401, "Wrong Credentials!")
+    return _schemas.UserRep.from_orm(db_user)
+
+async def create_post(user: _schemas.UserRep, db : _orm.Session , post: _schemas.PostReq):
+    post = _models.PostModel(**post.dict(), user_id=user.id)
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+    # db.close()
+    return _schemas.PostRes.from_orm(post)
