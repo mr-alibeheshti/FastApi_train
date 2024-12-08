@@ -1,6 +1,7 @@
 import fastapi as _fastapi
 import fastapi.security as _security
 import sqlalchemy.orm as _orm
+from typing import List
 import schemas as _schemas
 import services as _services
 import uvicorn as _uvicorn
@@ -32,3 +33,14 @@ async def get_user_info(user: _schemas.UserRep = _fastapi.Depends(_services.curr
 async def create_post(post_req : _schemas.PostReq, user: _schemas.UserReq = _fastapi.Depends(_services.current_user),
                       db:_orm.Session = _fastapi.Depends(_services.get_db)):
     return await _services.create_post(user=user,db=db,post=post_req)
+
+@app.get("/api/v1/post/post_per_user", response_model=list[_schemas.PostRes])
+async def get_posts_by_user(user: _schemas.UserReq = _fastapi.Depends(_services.current_user),
+                            db: _orm.session = _fastapi.Depends(_services.get_db)
+                            ):
+ return await _services.get_posts_by_user(user=user,db=db)
+
+@app.get("/api/v1/post/{post_id}" , response_model=_schemas.PostRes)
+async def get_post_detail(post_id:int, db: _orm.session = _fastapi.Depends(_services.get_db)):
+    post = await _services.get_post_detail(post_id=post_id, db=db)
+    return post

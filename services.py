@@ -91,3 +91,13 @@ async def create_post(user: _schemas.UserRep, db : _orm.Session , post: _schemas
     db.refresh(post)
     # db.close()
     return _schemas.PostRes.from_orm(post)
+
+async def get_posts_by_user(user: _schemas.UserRep , db : _orm.Session):
+    posts = db.query(_models.PostModel).filter_by(user_id=user.id)
+    return list(map(_schemas.PostRes.from_orm, posts))
+
+async def get_post_detail(post_id : int, db : _orm.session):
+    db_post = db.query(_models.PostModel).filter(_models.PostModel.id==post_id).first()
+    if not db_post:
+        raise _fastapi.HTTPException(404, "Post Not Found")
+    return _schemas.PostRes.from_orm(db_post)
